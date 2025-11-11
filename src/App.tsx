@@ -5,7 +5,6 @@ import { ParameterPicker } from './components/ParameterPicker';
 import { validateScriban } from './services/mockBackend';
 import { CUSTOM_FUNCTIONS } from './config';
 import { Diagnostic } from './types';
-import { FunctionCallParser } from './services/functionCallParser';
 import { ParameterValueExtractor } from './services/parameterValueExtractor';
 import { DebugLogger } from './utils/debugLogger';
 import { PickerState, DEFAULT_PICKER_STATE, closePickerState, createPickerState } from './utils/pickerStateUtils';
@@ -22,6 +21,7 @@ function App() {
     getModel: () => monaco.editor.ITextModel | null;
     getEditor: () => monaco.editor.IStandaloneCodeEditor | null;
     deselectAndPositionCursor: (range: monaco.Range) => void;
+    triggerMarkerDetection: () => void;
   } | null>(null);
 
     const [pickerState, setPickerState] = useState<PickerState>(DEFAULT_PICKER_STATE);
@@ -38,7 +38,6 @@ function App() {
           range: info.range,
           parameterIndex: info.parameterIndex,
           functionName: info.functionName,
-          autoFocus: true, // Auto-focus when opened from marker detection
           currentValue: null, // Markers have no current value
           cursorPosition: null // No cursor position to restore for markers
         }));
@@ -76,7 +75,6 @@ function App() {
           range: info.range,
           parameterIndex: info.parameterIndex,
           functionName: info.functionName,
-          autoFocus: false, // Don't auto-focus when opened from click (user might want to keep typing)
           currentValue,
           cursorPosition
         }));
@@ -117,40 +115,7 @@ function App() {
       
       // Wait for the replacement to complete and then check for next marker
       delayedSequentialPicker(() => {
-        if (!editorControlsRef.current) return;
-
-        const model = editorControlsRef.current.getModel();
-        if (!model) return;
-
-        // Find next marker using parser
-        const nextMarkerRange = FunctionCallParser.findMarkerRange(model);
-        if (nextMarkerRange) {
-          // Use parser to get parameter info for the marker
-          const paramInfo = FunctionCallParser.getParameterIndexAtPosition(model, nextMarkerRange.getStartPosition());
-          if (paramInfo) {
-            const param = paramInfo.functionCall.parameters[paramInfo.parameterIndex];
-            if (param.isMarker && param.type === 'path') {
-              // Get the range including quotes for the marker
-              // For markers, param.range already includes quotes (startColumn is at opening quote, endColumn is after closing quote)
-              // So we can use it directly
-              const markerRange = param.range;
-
-              const position = editorControlsRef.current.getMarkerPosition(markerRange);
-              if (position) {
-                setPickerState(createPickerState({
-                  position,
-                  range: markerRange,
-                  parameterIndex: paramInfo.parameterIndex,
-                  functionName: paramInfo.functionCall.functionName,
-                  autoFocus: true, // Auto-focus for sequential picking
-                  currentValue: null, // Markers have no current value
-                  cursorPosition: null // No cursor position to restore for markers
-                }));
-                return;
-              }
-            }
-          }
-        }
+        editorControlsRef.current?.triggerMarkerDetection();
       });
     } else {
       setPickerState(closePickerState());
@@ -265,10 +230,8 @@ function App() {
           <ParameterPicker
             position={pickerState.position}
             parameter={parameter}
-            parameterIndex={pickerState.parameterIndex}
             isSource={isSource}
             currentValue={pickerState.currentValue}
-            autoFocus={pickerState.autoFocus}
             onSelect={handleParameterSelect}
             onCancel={handleParameterCancel}
           />

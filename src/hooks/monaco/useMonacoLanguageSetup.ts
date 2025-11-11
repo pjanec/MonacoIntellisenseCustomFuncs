@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import * as monaco from 'monaco-editor';
-import { CUSTOM_FUNCTIONS, MARKER_TOKEN } from '../../config';
+import { CUSTOM_FUNCTIONS, MARKER_TOKEN, LANGUAGE_ID } from '../../config';
 
 /**
  * Hook to set up Scriban language support in Monaco Editor.
@@ -10,10 +10,10 @@ import { CUSTOM_FUNCTIONS, MARKER_TOKEN } from '../../config';
 export function useMonacoLanguageSetup() {
   useEffect(() => {
     // Register the Scriban language
-    monaco.languages.register({ id: 'scriban' });
+    monaco.languages.register({ id: LANGUAGE_ID });
 
     // Set up syntax highlighting tokenizer
-    monaco.languages.setMonarchTokensProvider('scriban', {
+    monaco.languages.setMonarchTokensProvider(LANGUAGE_ID, {
       tokenizer: {
         root: [
           [/[a-zA-Z_]\w*/, {
@@ -36,7 +36,7 @@ export function useMonacoLanguageSetup() {
     });
 
     // Register completion provider (auto-complete)
-    monaco.languages.registerCompletionItemProvider('scriban', {
+    monaco.languages.registerCompletionItemProvider(LANGUAGE_ID, {
       triggerCharacters: ['(', '.'],
       provideCompletionItems: (model, position) => {
         const word = model.getWordUntilPosition(position);
@@ -91,7 +91,7 @@ export function useMonacoLanguageSetup() {
     });
 
     // Register signature help provider (parameter hints)
-    monaco.languages.registerSignatureHelpProvider('scriban', {
+    monaco.languages.registerSignatureHelpProvider(LANGUAGE_ID, {
       signatureHelpTriggerCharacters: ['(', ','],
       provideSignatureHelp: (model, position) => {
         const textUntilPosition = model.getValueInRange({
@@ -130,7 +130,7 @@ export function useMonacoLanguageSetup() {
     });
 
     // Register hover provider (documentation on hover)
-    monaco.languages.registerHoverProvider('scriban', {
+    monaco.languages.registerHoverProvider(LANGUAGE_ID, {
       provideHover: (model, position) => {
         const word = model.getWordAtPosition(position);
         if (!word) return null;

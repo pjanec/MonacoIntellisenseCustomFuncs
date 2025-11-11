@@ -9,7 +9,6 @@ export interface PickerState {
   range: monaco.Range | null;
   parameterIndex: number;
   functionName: string;
-  autoFocus: boolean;
   currentValue: string | null;
   cursorPosition: monaco.Position | null;
 }
@@ -23,7 +22,6 @@ export const DEFAULT_PICKER_STATE: PickerState = {
   range: null,
   parameterIndex: 0,
   functionName: '',
-  autoFocus: false,
   currentValue: null,
   cursorPosition: null,
 };

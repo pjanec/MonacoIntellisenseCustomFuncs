@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as monaco from 'monaco-editor';
-import { MARKER_TOKEN } from '../config';
+import { MARKER_TOKEN, LANGUAGE_ID } from '../config';
 import { Diagnostic } from '../types';
 import { FunctionCallParser } from '../services/functionCallParser';
 import { RangeUtils } from '../services/rangeUtils';
@@ -34,6 +34,7 @@ export function useMonacoEditor(
     getModel: () => monaco.editor.ITextModel | null;
     getEditor: () => monaco.editor.IStandaloneCodeEditor | null;
     deselectAndPositionCursor: (range: monaco.Range) => void;
+    triggerMarkerDetection: () => void;
   } | null>(null);
 
   // Set up Scriban language support (tokenizer, completion, signature help, hover)
@@ -44,7 +45,7 @@ export function useMonacoEditor(
 
     const editor = monaco.editor.create(containerRef.current, {
       value: `copy("src/index.js")\nmove("static/logo.png", "assets/logo.png")\ndelete("temp.txt")\n\nfor item in collection\n  item\nend`,
-      language: 'scriban',
+      language: LANGUAGE_ID,
       theme: 'vs-light',
       automaticLayout: true,
       minimap: { enabled: false },
@@ -284,7 +285,7 @@ export function useMonacoEditor(
           : monaco.MarkerSeverity.Warning
       }));
 
-      monaco.editor.setModelMarkers(model, 'scriban', markers);
+      monaco.editor.setModelMarkers(model, LANGUAGE_ID, markers);
     };
 
     const getMarkerPosition = (range: monaco.Range): { x: number; y: number } | null => {
@@ -308,8 +309,7 @@ export function useMonacoEditor(
       onParameterClick: options.onParameterClick
     });
 
-    // Intercept Ctrl+Space before Monaco's default handler
-    // Use onKeyDown to catch the event early, but we need to handle it properly
+    // Handle Enter key to close picker
     const keyDownDisposable = editor.onKeyDown((e) => {
       // Close picker when Enter is pressed in the editor
       if (e.keyCode === monaco.KeyCode.Enter) {
@@ -319,60 +319,6 @@ export function useMonacoEditor(
         }
         // Don't prevent default - let Enter go through to create new line
         return;
-      }
-      
-      // Check for Ctrl+Space (or Cmd+Space on Mac)
-      // Monaco's KeyCode.Space is 32
-      const isSpace = e.keyCode === monaco.KeyCode.Space || e.keyCode === 32;
-      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      
-      if (isCtrlOrCmd && isSpace) {
-        const model = editor.getModel();
-        const position = editor.getPosition();
-        if (!model || !position) return;
-
-        // Use the centralized Ctrl+Space handler
-        const result = CtrlSpaceHandlerService.handleCtrlSpace(model, position);
-
-        if (result.action === 'open-picker') {
-          // Stop event propagation to prevent default completion
-          e.stopPropagation();
-          // Open picker for this parameter
-          const pickerPosition = getMarkerPosition(result.range!);
-          if (pickerPosition) {
-            options.onParameterClick({
-              range: result.range!,
-              functionName: result.functionName!,
-              parameterIndex: result.parameterIndex!
-            });
-          }
-          return;
-        }
-
-        if (result.action === 'insert-marker') {
-          // Stop event propagation to prevent default completion
-          e.stopPropagation();
-          // Insert marker for the next path parameter
-          skipNextMarkerDetection = true;
-          model.pushEditOperations(
-            [],
-            [{
-              range: result.range!,
-              text: result.insertText!
-            }],
-            () => null
-          );
-
-          // Trigger marker detection
-          delayedMarkerDetection(() => {
-            MarkerDetectionService.detectAndOpenPicker(
-              model,
-              options.onMarkerDetected,
-              markerDetectionRef
-            );
-          });
-          return;
-        }
       }
     });
 
@@ -391,13 +337,24 @@ export function useMonacoEditor(
       editor.focus();
     };
 
+    const triggerMarkerDetection = () => {
+      const model = editor.getModel();
+      if (!model) return;
+      MarkerDetectionService.detectAndOpenPicker(
+        model,
+        options.onMarkerDetected,
+        markerDetectionRef
+      );
+    };
+
         controlsRef.current = {
           replaceParameter,
           setDiagnostics,
           getMarkerPosition,
           getModel: () => editor.getModel(),
           getEditor: () => editor,
-          deselectAndPositionCursor
+          deselectAndPositionCursor,
+          triggerMarkerDetection
         };
 
         // Add Ctrl+Space command to open picker when cursor is in a parameter
@@ -481,7 +438,8 @@ export function useMonacoEditor(
     getMarkerPosition: (range: monaco.Range) => controlsRef.current?.getMarkerPosition(range) || null,
     getModel: () => editorRef.current?.getModel() || null,
     getEditor: () => editorRef.current,
-    deselectAndPositionCursor: (range: monaco.Range) => controlsRef.current?.deselectAndPositionCursor(range)
+    deselectAndPositionCursor: (range: monaco.Range) => controlsRef.current?.deselectAndPositionCursor(range),
+    triggerMarkerDetection: () => controlsRef.current?.triggerMarkerDetection()
   };
 }
 

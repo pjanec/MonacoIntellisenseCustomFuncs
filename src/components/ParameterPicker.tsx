@@ -1,35 +1,42 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import * as monaco from 'monaco-editor';
 import { FILE_SYSTEM_SNAPSHOT } from '../config';
 import { FunctionParameter } from '../types';
 import { delayedCallback } from '../utils/timingUtils';
 import './ParameterPicker.css';
 
-// Extend window type to include monaco
-declare global {
-  interface Window {
-    monaco?: typeof monaco;
-  }
-}
-
 interface ParameterPickerProps {
   position: { x: number; y: number };
   parameter: FunctionParameter;
-  parameterIndex: number;
   isSource: boolean;
   currentValue?: string | null; // Current parameter value (without quotes)
-  autoFocus?: boolean; // Whether to auto-focus the search input
   onSelect: (value: string) => void;
   onCancel: () => void;
 }
 
+// Helper function to sort items: folders first (sorted), then files (sorted)
+const sortItems = (items: string[]): string[] => {
+  const folders: string[] = [];
+  const files: string[] = [];
+
+  for (const item of items) {
+    if (FILE_SYSTEM_SNAPSHOT.folders.includes(item)) {
+      folders.push(item);
+    } else {
+      files.push(item);
+    }
+  }
+
+  folders.sort((a, b) => a.localeCompare(b));
+  files.sort((a, b) => a.localeCompare(b));
+
+  return [...folders, ...files];
+};
+
 export const ParameterPicker: React.FC<ParameterPickerProps> = ({
   position,
   parameter,
-  parameterIndex: _parameterIndex,
   isSource,
   currentValue,
-  autoFocus: _autoFocus = false, // Keep for backward compatibility but always focus
   onSelect,
   onCancel
 }) => {
@@ -40,7 +47,7 @@ export const ParameterPicker: React.FC<ParameterPickerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Filter items based on pathType and wholeFolder - memoize to prevent unnecessary recalculations
   const baseItems = useMemo(() => {
     if (parameter.pathType === 'file') {
@@ -49,38 +56,21 @@ export const ParameterPicker: React.FC<ParameterPickerProps> = ({
       return FILE_SYSTEM_SNAPSHOT.folders;
     } else {
       // 'both' or undefined - show both files and folders
-      return wholeFolder 
-        ? FILE_SYSTEM_SNAPSHOT.folders 
+      return wholeFolder
+        ? FILE_SYSTEM_SNAPSHOT.folders
         : [...FILE_SYSTEM_SNAPSHOT.files, ...FILE_SYSTEM_SNAPSHOT.folders];
     }
   }, [parameter.pathType, wholeFolder]);
-  
-  // Sort items: folders first (sorted), then files (sorted), then filter - memoize to prevent unnecessary recalculations
+
+  // Sort items: folders first (sorted), then files (sorted) - memoize to prevent unnecessary recalculations
+  const sortedBaseItems = useMemo(() => sortItems(baseItems), [baseItems]);
+
+  // Filter sorted items by search term - memoize to prevent unnecessary recalculations
   const filteredItems = useMemo(() => {
-    // Separate folders and files
-    const folders: string[] = [];
-    const files: string[] = [];
-    
-    for (const item of baseItems) {
-      if (FILE_SYSTEM_SNAPSHOT.folders.includes(item)) {
-        folders.push(item);
-      } else {
-        files.push(item);
-      }
-    }
-    
-    // Sort each group alphabetically
-    folders.sort((a, b) => a.localeCompare(b));
-    files.sort((a, b) => a.localeCompare(b));
-    
-    // Combine: folders first, then files
-    const sortedBaseItems = [...folders, ...files];
-    
-    // Filter by search term
     return sortedBaseItems.filter(item =>
       item.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [baseItems, searchTerm]);
+  }, [sortedBaseItems, searchTerm]);
 
   // Define handleSelect first so it can be used in useEffect
   const handleSelect = React.useCallback((item: string) => {
@@ -109,20 +99,18 @@ export const ParameterPicker: React.FC<ParameterPickerProps> = ({
     if (!currentValue) return 0;
     // Remove trailing slash for comparison
     const valueWithoutSlash = currentValue.endsWith('/') ? currentValue.slice(0, -1) : currentValue;
-    // Use same sorting logic as filteredItems: folders first, then files
-    const folders: string[] = [];
-    const files: string[] = [];
-    for (const item of baseItems) {
-      if (FILE_SYSTEM_SNAPSHOT.folders.includes(item)) {
-        folders.push(item);
-      } else {
-        files.push(item);
-      }
-    }
-    folders.sort((a, b) => a.localeCompare(b));
-    files.sort((a, b) => a.localeCompare(b));
-    const sortedBaseItems = [...folders, ...files];
-    const index = sortedBaseItems.findIndex(item => item === valueWithoutSlash);
+    // Compute base items for initialization
+    const tempBaseItems = parameter.pathType === 'file'
+      ? FILE_SYSTEM_SNAPSHOT.files
+      : parameter.pathType === 'folder'
+      ? FILE_SYSTEM_SNAPSHOT.folders
+      : initialWholeFolder
+      ? FILE_SYSTEM_SNAPSHOT.folders
+      : [...FILE_SYSTEM_SNAPSHOT.files, ...FILE_SYSTEM_SNAPSHOT.folders];
+
+    // Use the shared sorting helper
+    const tempSortedItems = sortItems(tempBaseItems);
+    const index = tempSortedItems.findIndex(item => item === valueWithoutSlash);
     return index >= 0 ? index : 0;
   });
   
@@ -244,43 +232,14 @@ export const ParameterPicker: React.FC<ParameterPickerProps> = ({
     }
     
     if (e.key === 'Enter') {
-      // If there are no filtered items, close the picker and insert newline in editor
+      // If there are no filtered items, close the picker
       if (filteredItems.length === 0) {
         e.preventDefault();
         e.stopPropagation();
-        // Get cursor position before closing picker
-        const editor = window.monaco?.editor?.getEditors()[0];
-        let cursorPosition: monaco.Position | null = null;
-        if (editor) {
-          cursorPosition = editor.getPosition();
-        }
         onCancel();
-        // Return focus to editor and insert newline after a delay to allow cursor restoration
-        delayedCallback(() => {
-          const editor = window.monaco?.editor?.getEditors()[0];
-          if (editor) {
-            editor.focus();
-            // Use the saved cursor position, or get current position
-            const position = cursorPosition || editor.getPosition();
-            if (position) {
-              const model = editor.getModel();
-              if (model) {
-                // Get the end of the line to insert newline there
-                const lineContent = model.getLineContent(position.lineNumber);
-                const endOfLine = lineContent.length + 1;
-                editor.executeEdits('insert-newline', [{
-                  range: new monaco.Range(position.lineNumber, endOfLine, position.lineNumber, endOfLine),
-                  text: '\n'
-                }]);
-                // Move cursor to new line
-                editor.setPosition(new monaco.Position(position.lineNumber + 1, 1));
-              }
-            }
-          }
-        }, 50);
         return;
       }
-      
+
       // If there are items, select the selected one
       if (filteredItems[selectedIndex]) {
         e.preventDefault();

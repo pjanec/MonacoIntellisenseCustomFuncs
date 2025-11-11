@@ -1,5 +1,7 @@
 import { CustomFunction, FileSystemSnapshot } from './types';
 
+export const LANGUAGE_ID = 'scriban';
+
 export const CUSTOM_FUNCTIONS: CustomFunction[] = [
   {
     name: 'copy',
