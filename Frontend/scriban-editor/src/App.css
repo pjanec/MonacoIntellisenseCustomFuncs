@@ -1,0 +1,97 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #1e1e1e;
+  color: #cccccc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #252526;
+  border-bottom: 1px solid #454545;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.status-indicator.connected {
+  background-color: #4ec9b0;
+  box-shadow: 0 0 8px #4ec9b0;
+}
+
+.status-indicator.disconnected {
+  background-color: #f48771;
+  box-shadow: 0 0 8px #f48771;
+}
+
+.app-main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-container {
+  width: 100%;
+  height: 100%;
+}
+
+.app-footer {
+  padding: 12px 24px;
+  background: #252526;
+  border-top: 1px solid #454545;
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #858585;
+}
+
+.footer-info code {
+  background: #3c3c3c;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: #ce9178;
+}
+
+.footer-info kbd {
+  background: #3c3c3c;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid #555555;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #cccccc;
+}
+
+.separator {
+  color: #454545;
+}

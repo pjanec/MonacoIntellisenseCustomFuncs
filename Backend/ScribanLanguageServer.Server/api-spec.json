@@ -1,0 +1,354 @@
+{
+  "globals": [
+    {
+      "name": "copy_file",
+      "type": "function",
+      "hover": "Copies a file from source to destination",
+      "parameters": [
+        {
+          "name": "source",
+          "type": "path",
+          "picker": "file-picker"
+        },
+        {
+          "name": "destination",
+          "type": "path",
+          "picker": "file-picker"
+        },
+        {
+          "name": "overwrite",
+          "type": "boolean",
+          "picker": "enum-list",
+          "options": ["true", "false"]
+        }
+      ]
+    },
+    {
+      "name": "read_file",
+      "type": "function",
+      "hover": "Reads the contents of a file",
+      "parameters": [
+        {
+          "name": "path",
+          "type": "path",
+          "picker": "file-picker"
+        }
+      ]
+    },
+    {
+      "name": "write_file",
+      "type": "function",
+      "hover": "Writes content to a file",
+      "parameters": [
+        {
+          "name": "path",
+          "type": "path",
+          "picker": "file-picker"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "picker": "none"
+        }
+      ]
+    },
+    {
+      "name": "os",
+      "type": "object",
+      "hover": "Operating system utilities and file operations",
+      "members": [
+        {
+          "name": "path_exists",
+          "type": "function",
+          "hover": "Checks if a path exists",
+          "parameters": [
+            {
+              "name": "path",
+              "type": "path",
+              "picker": "file-picker"
+            }
+          ]
+        },
+        {
+          "name": "is_directory",
+          "type": "function",
+          "hover": "Checks if a path is a directory",
+          "parameters": [
+            {
+              "name": "path",
+              "type": "path",
+              "picker": "file-picker"
+            }
+          ]
+        },
+        {
+          "name": "is_file",
+          "type": "function",
+          "hover": "Checks if a path is a file",
+          "parameters": [
+            {
+              "name": "path",
+              "type": "path",
+              "picker": "file-picker"
+            }
+          ]
+        },
+        {
+          "name": "list_files",
+          "type": "function",
+          "hover": "Lists all files in a directory",
+          "parameters": [
+            {
+              "name": "directory",
+              "type": "path",
+              "picker": "file-picker"
+            },
+            {
+              "name": "pattern",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "get_env",
+          "type": "function",
+          "hover": "Gets an environment variable value",
+          "parameters": [
+            {
+              "name": "variable",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "string",
+      "type": "object",
+      "hover": "String manipulation functions",
+      "members": [
+        {
+          "name": "upcase",
+          "type": "function",
+          "hover": "Converts a string to uppercase",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "downcase",
+          "type": "function",
+          "hover": "Converts a string to lowercase",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "capitalize",
+          "type": "function",
+          "hover": "Capitalizes the first letter of a string",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "replace",
+          "type": "function",
+          "hover": "Replaces all occurrences of a substring",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "picker": "none"
+            },
+            {
+              "name": "replacement",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "split",
+          "type": "function",
+          "hover": "Splits a string into an array",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            },
+            {
+              "name": "delimiter",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "trim",
+          "type": "function",
+          "hover": "Removes whitespace from both ends of a string",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "array",
+      "type": "object",
+      "hover": "Array manipulation functions",
+      "members": [
+        {
+          "name": "add",
+          "type": "function",
+          "hover": "Adds an item to an array",
+          "parameters": [
+            {
+              "name": "array",
+              "type": "any",
+              "picker": "none"
+            },
+            {
+              "name": "item",
+              "type": "any",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "size",
+          "type": "function",
+          "hover": "Returns the size of an array",
+          "parameters": [
+            {
+              "name": "array",
+              "type": "any",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "first",
+          "type": "function",
+          "hover": "Returns the first element of an array",
+          "parameters": [
+            {
+              "name": "array",
+              "type": "any",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "last",
+          "type": "function",
+          "hover": "Returns the last element of an array",
+          "parameters": [
+            {
+              "name": "array",
+              "type": "any",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "join",
+          "type": "function",
+          "hover": "Joins array elements into a string",
+          "parameters": [
+            {
+              "name": "array",
+              "type": "any",
+              "picker": "none"
+            },
+            {
+              "name": "separator",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "math",
+      "type": "object",
+      "hover": "Mathematical functions",
+      "members": [
+        {
+          "name": "round",
+          "type": "function",
+          "hover": "Rounds a number to the nearest integer",
+          "parameters": [
+            {
+              "name": "number",
+              "type": "number",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "ceil",
+          "type": "function",
+          "hover": "Rounds a number up",
+          "parameters": [
+            {
+              "name": "number",
+              "type": "number",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "floor",
+          "type": "function",
+          "hover": "Rounds a number down",
+          "parameters": [
+            {
+              "name": "number",
+              "type": "number",
+              "picker": "none"
+            }
+          ]
+        },
+        {
+          "name": "abs",
+          "type": "function",
+          "hover": "Returns the absolute value of a number",
+          "parameters": [
+            {
+              "name": "number",
+              "type": "number",
+              "picker": "none"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

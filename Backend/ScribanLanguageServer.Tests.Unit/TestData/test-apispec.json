@@ -1,0 +1,53 @@
+{
+  "globals": [
+    {
+      "name": "copy_file",
+      "type": "function",
+      "hover": "Copies a file from source to destination.\n\n**Example:**\n`copy_file(\"src.txt\", \"dest.txt\")`",
+      "parameters": [
+        {
+          "name": "source",
+          "type": "path",
+          "picker": "file-picker"
+        },
+        {
+          "name": "destination",
+          "type": "path",
+          "picker": "file-picker"
+        }
+      ]
+    },
+    {
+      "name": "set_mode",
+      "type": "function",
+      "hover": "Sets the operational mode",
+      "parameters": [
+        {
+          "name": "mode",
+          "type": "constant",
+          "picker": "enum-list",
+          "options": ["MODE_FAST", "MODE_SLOW", "MODE_SAFE"]
+        }
+      ]
+    },
+    {
+      "name": "os",
+      "type": "object",
+      "hover": "Operating system functions",
+      "members": [
+        {
+          "name": "execute",
+          "type": "function",
+          "hover": "Executes a shell command",
+          "parameters": [
+            {
+              "name": "command",
+              "type": "string",
+              "picker": "none"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
